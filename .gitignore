@@ -4,3 +4,11 @@
 *.meta
 .venv_is_set_up
 
+
+# Local runtime and build outputs.
+Models/
+logs/
+audio/
+python_embedded/
+python-*-embed-amd64.zip
+__pycache__/

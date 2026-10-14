@@ -55,9 +55,9 @@
         "filter": ["**/*"]
       },
       {
-        "from": "../dll_empty",
-        "to": "dll",
-        "filter": ["**/*"]
+        "from": "../Third_Party/Profanity",
+        "to": "Third_Party/Profanity",
+        "filter": ["en"]
       },
       {
         "from": "../Sounds",

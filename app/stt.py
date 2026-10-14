@@ -1,11 +1,24 @@
+from collections import deque
 from datetime import datetime
-from faster_whisper import WhisperModel
+import glob
 import json
 import langcodes
 from logger import log, log_err
 import noisereduce as nr
 import numpy as np
 import os
+
+# cuBLAS ships as the nvidia-cublas-cu12 pip wheel. ctranslate2 loads it with
+# LoadLibrary, which searches PATH, so put the wheel's DLL dirs there.
+try:
+    import nvidia
+    for nvidia_dir in nvidia.__path__:
+        for dll_dir in glob.glob(os.path.join(nvidia_dir, "*", "bin")):
+            os.environ["PATH"] = dll_dir + os.pathsep + os.environ["PATH"]
+except ImportError:
+    pass  # CPU-only install.
+
+from faster_whisper import WhisperModel
 from profanity_filter import ProfanityFilter
 import pyaudio
 from pydub import AudioSegment
@@ -42,10 +55,11 @@ class MicStream(AudioStream):
         self.stream = None
         self.sample_rate = None
         # Each time pyaudio gives us audio data, it's in the form of a chunk of
-        # samples. We keep these in a list to keep the audio callback as light
+        # samples. We keep these in a deque to keep the audio callback as light
         # as possible. Whenever downstream layers want data, we collapse the
-        # list into a single array of data (a bytes object).
-        self.chunks = []
+        # deque into a single array of data (a bytes object). deque append and
+        # popleft are thread-safe, so no chunk is lost between the two threads.
+        self.chunks = deque()
         # If set, incoming frames are simply discarded.
         self.paused = False
 
@@ -88,7 +102,16 @@ class MicStream(AudioStream):
         info = self.p.get_device_info_by_host_api_device_index(0, device_index)
         if cfg["enable_debug_mode"]:
             log(f"Found mic {which_mic}: {info['name']}")
-        self.sample_rate = int(info['defaultSampleRate'])
+        try:
+            # Prefer letting the OS resample to 16 kHz. It low-pass filters
+            # first; our sample-dropping fallback below aliases.
+            self.p.is_format_supported(AudioStream.FPS,
+                    input_device=device_index,
+                    input_channels=AudioStream.CHANNELS,
+                    input_format=AudioStream.FORMAT)
+            self.sample_rate = AudioStream.FPS
+        except ValueError:
+            self.sample_rate = int(info['defaultSampleRate'])
         if cfg["enable_debug_mode"]:
             log(f"Mic sample rate: {self.sample_rate}")
 
@@ -115,7 +138,7 @@ class MicStream(AudioStream):
         for i in range(0, numdevices):
             if (self.p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
                 device_name = self.p.get_device_info_by_host_api_device_index(0, i).get('name')
-                log("Input Device id ", i, " - ", device_name)
+                log(f"Input Device id {i} - {device_name}")
 
     def onAudioFramesAvailable(self,
             frames,
@@ -129,6 +152,10 @@ class MicStream(AudioStream):
                     float(self.sample_rate))
             self.chunks.append(np.zeros(n_frames,
                 dtype=np.int16).tobytes())
+            return (frames, pyaudio.paContinue)
+
+        if self.sample_rate == AudioStream.FPS:
+            self.chunks.append(frames)
             return (frames, pyaudio.paContinue)
 
         decimated = b''
@@ -150,10 +177,8 @@ class MicStream(AudioStream):
 
     # Get audio data and the corresponding timestamp.
     def getSamples(self) -> bytes:
-        chunks = self.chunks
-        self.chunks = []
-        result = b''.join(chunks)
-        return result
+        n = len(self.chunks)
+        return b''.join(self.chunks.popleft() for _ in range(n))
 
 class AudioCollector:
     def __init__(self, stream: AudioStream):
@@ -168,7 +193,10 @@ class AudioCollector:
     def getAudio(self) -> bytes:
         frames = self.stream.getSamples()
         if frames:
-            self.frames += frames
+            # Compress each chunk once on arrival. pydub's compressor is a
+            # per-sample Python loop (~34 ms per second of audio), far too slow
+            # to rerun over the whole buffer every loop.
+            self.frames += compress(frames)
         return self.frames
 
     def dropAudioPrefix(self, dur_s: float) -> bytes:
@@ -282,22 +310,12 @@ class BoostingAudioCollector(AudioCollectorFilter):
 
         return frames
 
-class CompressingAudioCollector(AudioCollectorFilter):
-    def __init__(self, parent: AudioCollector):
-        AudioCollectorFilter.__init__(self, parent)
-
-    def getAudio(self) -> bytes:
-        audio = self.parent.getAudio()
-
-        audio = AudioSegment(audio, sample_width=AudioStream.FRAME_SZ,
-                frame_rate=AudioStream.FPS, channels=AudioStream.CHANNELS)
-        # subtle compression has a slight positive effect on my benchmark
-        audio = audio.compress_dynamic_range(threshold=-10, ratio=2.0)
-
-        frames = np.array(audio.get_array_of_samples())
-        frames = np.int16(frames).tobytes()
-
-        return frames
+def compress(frames: bytes) -> bytes:
+    audio = AudioSegment(frames, sample_width=AudioStream.FRAME_SZ,
+            frame_rate=AudioStream.FPS, channels=AudioStream.CHANNELS)
+    # subtle compression has a slight positive effect on my benchmark
+    audio = audio.compress_dynamic_range(threshold=-10, ratio=2.0)
+    return audio.raw_data
 
 class NoiseReducingAudioCollector(AudioCollectorFilter):
     def __init__(self, parent: AudioCollector, cfg: typing.Dict):
@@ -379,6 +397,18 @@ class AudioSegmenter:
                 if delta_frames > min_delta_frames:
                     cutoff = now - int(min_delta_frames / 2)
 
+        now = int(len(audio) / AudioStream.FRAME_SZ)
+        if cutoff is None and segments and \
+                now > self.max_speech_duration_s * AudioStream.FPS:
+            # Speech (or noise) never paused long enough to commit. Force a
+            # cut so the buffer, and the work redone on it every loop, can't
+            # grow forever. Silero splits long speech, so cut at the last split.
+            # With no split, cutting at the segment start would commit only
+            # the leading silence (Whisper hears "you"), so take everything.
+            # ponytail: hard cut may split a sentence; cut at the quietest
+            # frame if that shows up in practice.
+            cutoff = segments[-1]['start'] if len(segments) > 1 else now
+
         return (cutoff, len(segments) > 0)
 
 # A segment of transcribed audio. `start_ts` and `end_ts` are floating point
@@ -428,7 +458,7 @@ class SegmentLogger:
     def __init__(self, cfg: typing.Dict):
         self.cfg = cfg
         self.enabled = cfg.get("enable_segment_logging", False)
-        self.session_data = []
+        self.n_logged = 0
         self.log_file = None
 
         if self.enabled:
@@ -438,7 +468,7 @@ class SegmentLogger:
 
             # Create file
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            self.log_file = os.path.join(log_dir, f"session_debug_{timestamp}.json")
+            self.log_file = os.path.join(log_dir, f"session_debug_{timestamp}.jsonl")
             log(f"Segment logging enabled. Logging to: {self.log_file}")
 
     def log_segment(self, segment: Segment, commit_type: str = "commit"):
@@ -459,22 +489,19 @@ class SegmentLogger:
             "duration_sanity": segment.audio_len_s
         }
 
-        self.session_data.append(segment_data)
-
-        # Write to file incrementally
+        # Append one JSON object per line. Rewriting the whole session on every
+        # segment got slower the longer the app ran.
         try:
-            with open(self.log_file, 'w') as f:
-                json.dump({
-                    "session_start": self.session_data[0]["timestamp"] if self.session_data else None,
-                    "segments": self.session_data
-                }, f, indent=2)
+            with open(self.log_file, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(segment_data) + "\n")
+            self.n_logged += 1
         except Exception as e:
             log_err(f"Error writing segment log: {e}")
 
     def close(self):
-        if self.enabled and self.session_data:
-            log(f"Session complete. Logged {len(self.session_data)} " + \
-                    "segments to {self.log_file}")
+        if self.enabled and self.n_logged:
+            log(f"Session complete. Logged {self.n_logged} " + \
+                    f"segments to {self.log_file}")
 
 
 class Whisper:
@@ -512,6 +539,9 @@ class Whisper:
                 download_root = model_root,
                 local_files_only = already_downloaded)
 
+        # Resolve once so a bad language name fails at startup, not mid-session.
+        self.language = langcodes.find(cfg["language"]).language
+
         self.context_window_chars = 200  # Keep last 200 chars of context
         self.recent_context = ""  # Store recent committed text
 
@@ -524,7 +554,8 @@ class Whisper:
             words = words[len(words)//2:]
             self.recent_context = ' '.join(words)
 
-    def transcribe(self, frames: bytes = None) -> typing.List[Segment]:
+    def transcribe(self, frames: bytes = None,
+            preview: bool = False) -> typing.List[Segment]:
         if frames is None:
             frames = self.collector.getAudio()
 
@@ -539,22 +570,28 @@ class Whisper:
         if self.cfg["enable_debug_mode"]:
             log(f"Prompt: {prompt}")
 
+        if preview:
+            # Previews get replaced by the commit, so decode them once,
+            # greedily, with no temperature-fallback retries.
+            decode_opts = dict(beam_size=1, temperature=0.0)
+        else:
+            decode_opts = dict(beam_size=self.cfg.get("beam_size", 5),
+                    best_of=self.cfg.get("best_of", 5))
+
         t0 = time.time()
         segments, info = self.model.transcribe(
                 audio,
-                language = langcodes.find(self.cfg["language"]).language,
+                language = self.language,
                 vad_filter = False,
-                #temperature=0.0,
                 without_timestamps = False,
                 initial_prompt=prompt,
-                beam_size=self.cfg.get("beam_size", 5),
-                best_of=self.cfg.get("best_of", 5),
-                condition_on_previous_text=True
+                condition_on_previous_text=True,
+                **decode_opts
         )
         res = []
         for s in segments:
             # Log raw segment before filtering
-            if self.segment_logger:
+            if self.segment_logger and not preview:
                 # Create a temporary segment object for logging
                 raw_seg = Segment(s.text, s.start, s.end,
                     self.collector.begin(),
@@ -665,9 +702,11 @@ class VadCommitter:
             duration_s = stable_cutoff / AudioStream.FPS
             start_ts = self.collector.begin()
 
-            # Get the filtered audio first, then extract the portion we need
-            filtered_audio = self.collector.getAudio()
-            commit_audio = filtered_audio[:stable_cutoff * AudioStream.FRAME_SZ]
+            # Reuse this loop's filtered audio. Each getAudio() reruns the
+            # whole filter chain over the whole buffer.
+            cut_bytes = stable_cutoff * AudioStream.FRAME_SZ
+            commit_audio = audio[:cut_bytes]
+            audio = audio[cut_bytes:]
 
             # Now drop the prefix from the collector
             self.collector.dropAudioPrefixByFrames(stable_cutoff)
@@ -679,7 +718,6 @@ class VadCommitter:
             if delta.strip():
                 self.whisper.update_context(delta.strip())
 
-            audio = self.collector.getAudio()
             if self.cfg["enable_debug_mode"]:
                 for s in segments:
                     log(f"commit segment: {s}")
@@ -696,8 +734,8 @@ class VadCommitter:
                 saveAudio(commit_audio, os.path.join(audio_dir, filename), self.cfg)
 
         preview = ""
-        if self.cfg["enable_previews"] and has_audio:
-            segments = self.whisper.transcribe(audio)
+        if self.cfg["enable_previews"] and has_audio and audio:
+            segments = self.whisper.transcribe(audio, preview=True)
             preview = "".join(s.transcript for s in segments)
 
         if not has_audio:
@@ -798,7 +836,6 @@ def transcriptionThread(shared_data: SharedThreadData):
 
     stream = MicStream(shared_data.cfg)
     collector = AudioCollector(stream)
-    collector = CompressingAudioCollector(collector)
     collector = BoostingAudioCollector(collector, -16.0, 24.0,
                                        shared_data.cfg)
     collector = NoiseReducingAudioCollector(collector, shared_data.cfg)

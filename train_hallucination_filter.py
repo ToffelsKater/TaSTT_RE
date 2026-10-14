@@ -36,12 +36,15 @@ def load_segments(log_dir):
 
     for root, dirs, files in os.walk(log_dir):
         for file in files:
-            if not file.endswith('.json'):
-                continue
-            with open(os.path.join(root, file), 'r') as f:
-                data = json.load(f)
+            with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
+                if file.endswith('.json'):  # Old format
+                    file_segments = json.load(f)["segments"]
+                elif file.endswith('.jsonl'):
+                    file_segments = [json.loads(l) for l in f if l.strip()]
+                else:
+                    continue
 
-            for segment in data["segments"]:
+            for segment in file_segments:
                 if 'duration_sanity' not in segment:
                     continue
 
@@ -52,7 +55,8 @@ def load_segments(log_dir):
                 # Calculate raw duration from timestamps
                 start_ts = segment["start_ts"]
                 end_ts = segment["end_ts"]
-                raw_duration = end_ts - start_ts
+                # Same 20 ms floor as HallucinationFilter.is_hallucination.
+                raw_duration = max(end_ts - start_ts, 0.02)
 
                 seg_data = {
                     'avg_logprob': segment["avg_logprob"],

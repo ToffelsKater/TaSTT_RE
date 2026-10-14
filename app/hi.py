@@ -29,6 +29,9 @@ PROJECT_ROOT = os.path.dirname(APP_ROOT)
 
 def get_tokenizer():
     model_path = os.path.join(PROJECT_ROOT, "custom_unigram_tokenizer_65k", "unigram.model")
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Custom chatbox needs {model_path} (see " +
+                "generate_tokenizer.py). Enable the builtin chatbox instead.")
     log(f"Loading SentencePiece tokenizer from: {model_path}")
     sp = spm.SentencePieceProcessor()
     sp.load(model_path)
@@ -358,7 +361,8 @@ def osc_thread(shared_data: SharedThreadData):
         while not shared_data.exit_event.is_set():
             word_copy = ""
             with shared_data.word_lock:
-                word_copy = shared_data.word
+                word_copy = join_segments(shared_data.transcript,
+                                          shared_data.preview)
             handle_input(input_state, word_copy, tokenizer, osc_client, shared_data.cfg)
             time.sleep(0.01)
 
@@ -560,14 +564,11 @@ if __name__ == "__main__":
     kb_input_thd = threading.Thread(target=kbInputThread, args=(shared_data,))
     kb_input_thd.start()
 
-    word_is_over = False
-    local_word = ""
-    while True:
-        time.sleep(0.1)
-        continue
-    shared_data.exit_event.set()
-    osc_thread.join()
-    transcribe_thread.join()
-    vr_input_thd.join()
-    kb_input_thd.join()
+    # Worker threads die on unhandled exceptions (mic not found, CUDA error,
+    # ...). Exit so the UI sees the process stop instead of a dead transcriber.
+    # The traceback is already on stderr.
+    while transcribe_thread.is_alive() and osc_thread.is_alive():
+        time.sleep(0.5)
+    log_err("A worker thread died, exiting.")
+    os._exit(1)
 

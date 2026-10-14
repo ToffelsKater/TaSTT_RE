@@ -9,9 +9,10 @@ const extract = require('extract-zip');
 
 const projectRoot = path.join(__dirname, '..', '..');
 const pythonPath = path.join(projectRoot, 'python_embedded');
-const dllPath = path.join(projectRoot, 'dll_empty');
 
-const PYTHON_URL = 'https://www.python.org/ftp/python/3.10.11/python-3.10.11-embed-amd64.zip';
+// 3.12, not 3.13+: pydub needs audioop, which 3.13 removed.
+const PYTHON_VERSION = '3.12.10';
+const PYTHON_URL = `https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-embed-amd64.zip`;
 const PIP_URL = 'https://bootstrap.pypa.io/get-pip.py';
 
 async function downloadFile(url, dest) {
@@ -41,23 +42,17 @@ async function downloadFile(url, dest) {
 async function setupEmbeddedPython() {
     console.log('Setting up embedded Python...');
 
-    // Delete existing directories
+    // Delete existing directory
     if (fs.existsSync(pythonPath)) {
         fs.rmSync(pythonPath, { recursive: true, force: true });
         console.log('Deleted existing Python directory');
     }
-    if (fs.existsSync(dllPath)) {
-        fs.rmSync(dllPath, { recursive: true, force: true });
-        console.log('Deleted existing dll directory');
-    }
 
-    // Create directories
     fs.mkdirSync(pythonPath, { recursive: true });
-    fs.mkdirSync(dllPath, { recursive: true });
-    console.log('Created Python and dll directories');
+    console.log('Created Python directory');
 
     // Download Python
-    const pythonZip = path.join(projectRoot, 'python-3.10.11-embed-amd64.zip');
+    const pythonZip = path.join(projectRoot, path.basename(PYTHON_URL));
     if (!fs.existsSync(pythonZip)) {
         await downloadFile(PYTHON_URL, pythonZip);
     }
@@ -67,11 +62,12 @@ async function setupEmbeddedPython() {
     await extract(pythonZip, { dir: pythonPath });
     console.log('Python extracted successfully');
 
-    // Update python310._pth to include the app directory and enable site packages
-    const pthFile = path.join(pythonPath, 'python310._pth');
+    // Update pythonXY._pth to include the app directory and enable site packages
+    const [major, minor] = PYTHON_VERSION.split('.');
+    const pthFile = path.join(pythonPath, `python${major}${minor}._pth`);
     const pthContent = fs.readFileSync(pthFile, 'utf8');
     fs.writeFileSync(pthFile, pthContent + '\n../app\nimport site\n');
-    console.log('Updated python310._pth');
+    console.log(`Updated ${path.basename(pthFile)}`);
 
     // Download get-pip.py
     const getPipPath = path.join(pythonPath, 'get-pip.py');

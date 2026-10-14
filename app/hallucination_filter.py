@@ -37,7 +37,12 @@ class HallucinationFilter:
         app_root = Path(__file__).resolve().parent
         project_root = app_root.parent
         model_path = project_root / "Models" / "thankyou_filter_gb.pkl"
-        # Try to load the model
+        # The model is trained on personal speech data and isn't in git. Run
+        # without it rather than crash the transcription thread.
+        if not model_path.exists():
+            log_err(f"Hallucination filter model not found at {model_path}, " +
+                    "using heuristics only")
+            return
         log(f"Loading hallucination filter")
         bundle = joblib.load(model_path)
         self.model = bundle["model"]
@@ -56,12 +61,14 @@ class HallucinationFilter:
         """
         s = segment  # Brevity
 
-        if s.no_speech_prob == 0:
+        if s.no_speech_prob == 0 and self.model is not None:
             # no_speech is not available. Use fancy classifier trained on my
             # speech data.
             text = s.transcript
             duration = s.audio_len_s
-            raw_duration = s.end_ts - s.start_ts
+            # Whisper can emit zero-length segments. Floor at its 20 ms
+            # timestamp resolution to avoid dividing by zero.
+            raw_duration = max(s.end_ts - s.start_ts, 0.02)
             n_syllables = text_syllable_count(text)
             sps = n_syllables / duration
             raw_sps = n_syllables / raw_duration
@@ -85,7 +92,7 @@ class HallucinationFilter:
         if s.no_speech_prob > 0.6 and s.avg_logprob < -0.5:
             if self.cfg["enable_debug_mode"]:
                 print(f"Drop probable hallucination (case 1) " +
-                        f"(text='{s.text}', " +
+                        f"(text='{s.transcript}', " +
                         f"no_speech_prob={s.no_speech_prob}, " +
                         f"avg_logprob={s.avg_logprob})", file=sys.stderr)
             return True
@@ -95,7 +102,7 @@ class HallucinationFilter:
         if s.no_speech_prob > 0.15 and s.avg_logprob < -0.7:
             if self.cfg["enable_debug_mode"]:
                 print(f"Drop probable hallucination (case 2) " +
-                        f"(text='{s.text}', " +
+                        f"(text='{s.transcript}', " +
                         f"no_speech_prob={s.no_speech_prob}, " +
                         f"avg_logprob={s.avg_logprob})", file=sys.stderr)
             return True

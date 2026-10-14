@@ -1,16 +1,76 @@
-faster-whisper
-hf-xet
-keyboard
-langcodes
-noisereduce
-pandas
-pronouncing
-pyaudio
-pygame
-pydub
-python-osc
-scikit-learn
-sentencepiece
-silero-vad
-openvr
-joblib
+# Exact versions, tested with embedded Python 3.12.10 on Windows (CUDA via the
+# nvidia-cublas-cu12 wheel). Unpinned installs broke: langcodes 3.5 moved name
+# lookup into language_data, crashing on the first transcription.
+#
+# To update: in a fresh embedded Python, install the top-level list
+#   faster-whisper hf-xet keyboard langcodes[data] noisereduce pandas
+#   pronouncing pyaudio pygame pydub python-osc scikit-learn sentencepiece
+#   silero-vad openvr joblib nvidia-cublas-cu12
+# test, then replace the pins below with `pip freeze`.
+anyio==4.15.1
+av==19.0.1
+click==8.5.0
+cloudpickle==3.1.2
+cmudict==1.1.3
+colorama==0.4.6
+contourpy==1.4.0
+ctranslate2==4.8.3
+cycler==0.12.1
+faster-whisper==1.2.1
+filelock==4.1.2
+flatbuffers==25.12.19
+fonttools==4.67.0
+fsspec==2026.9.0
+h11==0.16.0
+hf-xet==1.7.0
+httpcore2==2.13.1
+httpx2==2.13.1
+huggingface_hub==2.2.0
+idna==3.20
+importlib_metadata==9.0.1
+importlib_resources==7.1.0
+Jinja2==3.1.6
+joblib==1.6.0
+keyboard==0.13.5
+kiwisolver==1.5.1
+langcodes==3.5.1
+language_data==1.4.0
+marisa-trie==1.4.1
+MarkupSafe==3.0.4
+matplotlib==3.11.2
+mpmath==1.3.0
+narwhals==2.27.1
+networkx==3.7
+noisereduce==3.0.3
+numpy==2.5.4
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cuda-nvrtc-cu12==12.9.86
+onnxruntime==1.31.0
+openvr==2.12.1401
+packaging==26.3
+pandas==3.0.6
+pillow==12.3.0
+pronouncing==0.3.0
+protobuf==7.36.2
+PyAudio==0.2.14
+pydub==0.25.1
+pygame==2.6.1
+pyparsing==3.3.3
+python-dateutil==2.9.0.post0
+python-osc==1.10.2
+PyYAML==6.0.3
+scikit-learn==1.9.1
+scipy==1.18.1
+sentencepiece==0.2.2
+setuptools==84.0.0
+silero-vad==6.2.3
+six==1.17.0
+sympy==1.14.0
+threadpoolctl==3.7.0
+tokenizers==0.23.3
+torch==2.14.1
+tqdm==4.70.1
+truststore==0.10.5
+typing_extensions==4.16.0
+tzdata==2026.5
+zipp==4.1.1

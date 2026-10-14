@@ -3,7 +3,6 @@ const path = require('node:path');
 const fs = require('node:fs').promises;
 const yaml = require('js-yaml');
 const { spawn } = require('child_process');
-const https = require('https');
 const { CONFIG_SCHEMA, getDefaultConfig } = require('./config-schema.js');
 
 // Detect if we're running in development or production
@@ -16,20 +15,6 @@ const CONFIG_PATH = path.join(APP_ROOT, 'config.yaml');
 
 let mainWindow;
 let runningProcess = null; // Track the running Python process
-
-// Required DLL files for CUDA/cuDNN support
-const REQUIRED_DLLS = [
-  'cublas64_12.dll',
-  'cublasLt64_12.dll',
-  'cudnn64_9.dll',
-  'cudnn_adv64_9.dll',
-  'cudnn_cnn64_9.dll',
-  'cudnn_engines_precompiled64_9.dll',
-  'cudnn_engines_runtime_compiled64_9.dll',
-  'cudnn_graph64_9.dll',
-  'cudnn_heuristic64_9.dll',
-  'cudnn_ops64_9.dll'
-];
 
 // Helper function to get the correct Python executable from embedded python
 function getVenvPython() {
@@ -44,66 +29,14 @@ function sendPythonOutput(message, type = 'stdout') {
   }
 }
 
-// Helper function to create environment with DLL path
+// Helper function to create a minimal Python environment. CUDA DLLs come from
+// pip wheels; app/stt.py puts them on PATH.
 function createPythonEnvironment() {
-  const dllPath = path.join(APP_ROOT, 'dll');
   const binPath = path.join(APP_ROOT, 'python', 'Scripts');
   const env = {};
-  env.PATH = `${dllPath};${binPath}`;
+  env.PATH = binPath;
   env.HF_HUB_DISABLE_SYMLINKS_WARNING = '1';
   return env;
-}
-
-// Helper function to download a file from URL with progress
-function downloadFile(url, outputPath) {
-  return new Promise((resolve, reject) => {
-    const file = require('fs').createWriteStream(outputPath);
-    const fileName = path.basename(outputPath);
-
-    const request = https.get(url, (response) => {
-      if (response.statusCode === 200) {
-        const totalSize = parseInt(response.headers['content-length'], 10);
-        let downloadedSize = 0;
-        let lastProgressTime = Date.now();
-
-        response.on('data', (chunk) => {
-          downloadedSize += chunk.length;
-
-          // Log progress every 5 seconds
-          const now = Date.now();
-          if (totalSize && (now - lastProgressTime >= 5000)) {
-            const progress = Math.round((downloadedSize / totalSize) * 100);
-            const mb = (downloadedSize / 1024 / 1024).toFixed(1);
-            const totalMb = (totalSize / 1024 / 1024).toFixed(1);
-            sendPythonOutput(`Downloading ${fileName}: ${mb}/${totalMb} MB (${progress}%)`, 'info');
-            lastProgressTime = now;
-          }
-        });
-
-        response.pipe(file);
-
-        file.on('finish', () => {
-          file.close();
-          resolve();
-        });
-
-        file.on('error', (err) => {
-          fs.unlink(outputPath).catch(() => {}); // Clean up on error
-          reject(err);
-        });
-      } else {
-        file.close();
-        fs.unlink(outputPath).catch(() => {}); // Clean up on error
-        reject(new Error(`Failed to download: HTTP ${response.statusCode}`));
-      }
-    });
-
-    request.on('error', (err) => {
-      file.close();
-      fs.unlink(outputPath).catch(() => {}); // Clean up on error
-      reject(err);
-    });
-  });
 }
 
 function shouldFilterMessage(message) {
@@ -284,83 +217,6 @@ ipcMain.handle('deleteVenvIndicatorFile', async () => {
   }
 });
 
-// Generic function to ensure required files are present
-async function ensureRequiredFiles(config) {
-  const {
-    directoryName,
-    requiredFiles,
-    downloadBaseUrl,
-    resourceType
-  } = config;
-
-  const targetPath = path.join(APP_ROOT, directoryName);
-
-  try {
-    // Check if target directory exists, create it if not
-    try {
-      await fs.access(targetPath);
-      sendPythonOutput(`${resourceType} directory exists`, 'info');
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        sendPythonOutput(`Creating ${resourceType} directory...`, 'info');
-        await fs.mkdir(targetPath, { recursive: true });
-        sendPythonOutput(`${resourceType} directory created`, 'info');
-      } else {
-        throw error;
-      }
-    }
-
-    // Check each required file
-    const missingFiles = [];
-    for (const fileName of requiredFiles) {
-      const filePath = path.join(targetPath, fileName);
-      try {
-        await fs.access(filePath);
-        sendPythonOutput(`✓ ${fileName} exists`, 'info');
-      } catch (error) {
-        if (error.code === 'ENOENT') {
-          missingFiles.push(fileName);
-          sendPythonOutput(`✗ ${fileName} missing`, 'info');
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    // Download missing files
-    if (missingFiles.length > 0) {
-      sendPythonOutput(`Downloading ${missingFiles.length} missing ${resourceType} file${missingFiles.length > 1 ? 's' : ''}...`, 'info');
-
-      for (const fileName of missingFiles) {
-        const filePath = path.join(targetPath, fileName);
-        const downloadUrl = `${downloadBaseUrl}/${fileName}`;
-
-        try {
-          sendPythonOutput(`Downloading ${fileName}...`, 'info');
-          await downloadFile(downloadUrl, filePath);
-          sendPythonOutput(`✓ Downloaded ${fileName}`, 'info');
-        } catch (downloadError) {
-          sendPythonOutput(`✗ Failed to download ${fileName}: ${downloadError.message}`, 'stderr');
-          throw new Error(`Failed to download ${fileName}: ${downloadError.message}`);
-        }
-      }
-
-      sendPythonOutput(`All missing ${resourceType} files downloaded successfully`, 'info');
-    } else {
-      sendPythonOutput(`All required ${resourceType} files are present`, 'info');
-    }
-
-    return {
-      success: true,
-      message: `${resourceType} setup complete. ${missingFiles.length} file${missingFiles.length > 1 ? 's' : ''} downloaded.`,
-      downloadedFiles: missingFiles
-    };
-  } catch (error) {
-    console.error(`Error setting up ${resourceType} files:`, error);
-    throw new Error(`${resourceType} setup failed: ${error.message}`);
-  }
-}
-
 // Update the install-requirements handler
 ipcMain.handle('install-requirements', async () => {
   const requirementsPath = path.join(APP_ROOT, 'app', 'requirements.txt');
@@ -379,13 +235,6 @@ ipcMain.handle('install-requirements', async () => {
     await fs.access(requirementsPath);
 
     await executePythonCommand(['-m', 'pip', 'install', '-r', requirementsPath]);
-
-    await ensureRequiredFiles({
-      directoryName: 'dll',
-      requiredFiles: REQUIRED_DLLS,
-      downloadBaseUrl: 'https://yummers.dev/tastt/dll',
-      resourceType: 'DLL'
-    });
 
     await fs.mkdir(path.join(APP_ROOT, 'Models'), { recursive: true });
 
@@ -502,15 +351,13 @@ ipcMain.handle('reset-venv', async () => {
     // Clear downloaded files
     sendPythonOutput('Clearing downloaded files...', 'info');
 
-    const dllPath = path.join(APP_ROOT, 'dll');
     const modelsPath = path.join(APP_ROOT, 'Models');
     const binPath = path.join(APP_ROOT, 'bin');
 
-    const deletedDlls = await clearDirectory(dllPath, 'DLL');
     const deletedModels = await clearDirectory(modelsPath, 'Models');
     const deletedBins = await clearDirectory(binPath, 'Binary');
 
-    const totalDeletedFiles = deletedDlls + deletedModels + deletedBins;
+    const totalDeletedFiles = deletedModels + deletedBins;
 
     sendPythonOutput('Virtual environment reset successfully!', 'info');
 
@@ -519,7 +366,6 @@ ipcMain.handle('reset-venv', async () => {
       message: `Virtual environment reset complete. Uninstalled ${uninstalledPackages.length} packages and deleted ${totalDeletedFiles} downloaded files.`,
       uninstalledPackages,
       deletedFiles: {
-        dlls: deletedDlls,
         models: deletedModels,
         binaries: deletedBins,
         total: totalDeletedFiles

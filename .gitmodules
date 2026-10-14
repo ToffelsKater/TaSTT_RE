@@ -1,6 +1,3 @@
-[submodule "World-Constraint"]
-	path = UnityAssets/World-Constraint
-	url = https://github.com/VRLabs/World-Constraint
-[submodule "BrowserSource/Proxy/fmt"]
-	path = BrowserSource/Proxy/fmt
-	url = https://github.com/fmtlib/fmt
+[submodule "Third_Party/Profanity"]
+	path = Third_Party/Profanity
+	url = https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words

@@ -28,6 +28,13 @@ def check_forced_cutoff():
     seg.segmentAudio = lambda a: [{"start": 0, "end": 5 * FPS}]
     assert seg.getStableCutoff(audio(12))[0] == 12 * FPS - 800
 
+def check_first_turn():
+    assert stt.first_turn("- Danke. - Danke.") == "Danke."
+    assert stt.first_turn("- Ja.") == "Ja."
+    # Dashes inside a normal sentence stay.
+    assert stt.first_turn("Paris - London") == "Paris - London"
+
 if __name__ == "__main__":
     check_forced_cutoff()
+    check_first_turn()
     print("ok")

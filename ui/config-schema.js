@@ -3,6 +3,8 @@ const CONFIG_SCHEMA = {
     // String fields
     compute_type: { type: 'select', default: 'float16' },
     language: { type: 'select', default: 'english' },
+    language_target: { type: 'select', default: 'none' },
+    model_translation: { type: 'select', default: 'nllb-200-distilled-600M' },
     model: { type: 'select', default: 'turbo' },
     microphone: { type: 'number', default: 0 },
     user_prompt: { type: 'text', default: 'Use proper punctuation and grammar. Prefer spelled out numbers like one, eleven, twenty, etc. Mm.' },
@@ -35,6 +37,7 @@ const CONFIG_SCHEMA = {
     enable_uppercase_filter: { type: 'boolean', default: 0 },
     enable_profanity_filter: { type: 'boolean', default: 0 },
     remove_trailing_period: { type: 'boolean', default: 0 },
+    enable_orig_lang: { type: 'boolean', default: 1 },
     reset_on_toggle: { type: 'boolean', default: 0 },
     use_builtin: { type: 'boolean', default: 1 }
 };

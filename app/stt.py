@@ -18,10 +18,15 @@ try:
 except ImportError:
     pass  # CPU-only install.
 
+import ctranslate2
 from faster_whisper import WhisperModel
+from functools import lru_cache
+from huggingface_hub import snapshot_download
 from profanity_filter import ProfanityFilter
 import pyaudio
 from pydub import AudioSegment
+import re
+import sentencepiece as spm
 from shared_thread_data import SharedThreadData
 from silero_vad import load_silero_vad, get_speech_timestamps
 import sys
@@ -761,6 +766,86 @@ class StreamingPlugin:
         pass
 
 
+# NLLB codes for the languages the UI lets you speak.
+WHISPER_TO_NLLB = {
+    "english": "eng_Latn", "spanish": "spa_Latn", "french": "fra_Latn",
+    "german": "deu_Latn", "italian": "ita_Latn", "portuguese": "por_Latn",
+    "russian": "rus_Cyrl", "chinese": "zho_Hans", "japanese": "jpn_Jpan",
+    "korean": "kor_Hang",
+}
+
+# Meta's NLLB-200, pre-converted for CTranslate2. Pinned so a re-upload can't
+# change what users run.
+TRANSLATION_MODELS = {
+    "nllb-200-distilled-600M": ("JustFrederik/nllb-200-distilled-600M-ct2-int8",
+        "302d78f00e6fdb50a1064059df7c392b735e9d05"),
+    "nllb-200-distilled-1.3B": ("JustFrederik/nllb-200-distilled-1.3B-ct2-int8",
+        "30c36268408177b0fce2bfcfa205d877accd327d"),
+}
+TRANSLATION_FILES = ["config.json", "model.bin", "sentencepiece.bpe.model",
+        "shared_vocabulary.txt"]
+
+
+def first_turn(s: str) -> str:
+    # On short inputs NLLB writes subtitle-style dialogue and invents a reply
+    # ("- Danke. - Danke."). Keep the first turn.
+    # ponytail: one-word utterances ("Yes.") still come out loose; that's
+    # NLLB itself, the 1.3B model is better at it.
+    return s[2:].split(" - ")[0] if s.startswith("- ") else s
+
+
+class TranslationPlugin(StreamingPlugin):
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.translator = None
+        self.target = cfg.get("language_target", "none")
+        if self.target == "none":
+            return
+        self.source = WHISPER_TO_NLLB[cfg["language"]]
+
+        model_name = cfg.get("model_translation", "nllb-200-distilled-600M")
+        repo, revision = TRANSLATION_MODELS[model_name]
+        model_dir = os.path.join(PROJECT_ROOT, "Models", model_name)
+        if not all(os.path.exists(os.path.join(model_dir, f))
+                for f in TRANSLATION_FILES):
+            log(f"Translation model {model_name} not already downloaded, " +
+                    "downloading now...")
+            snapshot_download(repo, revision=revision, local_dir=model_dir,
+                    allow_patterns=TRANSLATION_FILES)
+
+        device = "cpu" if cfg["use_cpu"] else "cuda"
+        compute_type = "int8" if cfg["use_cpu"] else cfg["compute_type"]
+        self.translator = ctranslate2.Translator(model_dir, device=device,
+                device_index=cfg["gpu_idx"], compute_type=compute_type)
+        self.sp = spm.SentencePieceProcessor(
+                model_file=os.path.join(model_dir, "sentencepiece.bpe.model"))
+        log(f"Translating {cfg['language']} to {self.target} with {model_name}")
+
+    # Previews repeat across loops, so cache instead of re-translating.
+    @lru_cache(maxsize=64)
+    def translate(self, text: str) -> str:
+        # NLLB is trained on single sentences and drops text from long inputs.
+        sentences = [s for s in re.split(r'(?<=[.!?。！？])\s*', text.strip()) if s]
+        if not sentences:
+            return text
+        batch = [[self.source] + self.sp.encode(s, out_type=str) + ["</s>"]
+                for s in sentences]
+        results = self.translator.translate_batch(batch,
+                target_prefix=[[self.target]] * len(batch))
+        # Each hypothesis starts with the target language token.
+        translated = " ".join(first_turn(self.sp.decode(r.hypotheses[0][1:]))
+                for r in results)
+        if self.cfg.get("enable_orig_lang", True):
+            translated += f" ({text.strip()})"
+        return translated
+
+    def transform(self, commit: TranscriptCommit) -> TranscriptCommit:
+        if self.translator:
+            commit.delta = self.translate(commit.delta)
+            commit.preview = self.translate(commit.preview)
+        return commit
+
+
 class LowercasePlugin(StreamingPlugin):
     def __init__(self, cfg):
         self.cfg = cfg
@@ -848,7 +933,7 @@ def transcriptionThread(shared_data: SharedThreadData):
     committer = VadCommitter(shared_data.cfg, collector, whisper, segmenter, segment_logger)
 
     plugins = []
-    # plugins.append(TranslationPlugin(shared_data.cfg))  # Not implemented yet
+    plugins.append(TranslationPlugin(shared_data.cfg))
     plugins.append(UppercasePlugin(shared_data.cfg))
     plugins.append(LowercasePlugin(shared_data.cfg))
     plugins.append(ProfanityPlugin(shared_data.cfg))
@@ -874,10 +959,12 @@ def transcriptionThread(shared_data: SharedThreadData):
 
         commit = committer.getDelta()
 
-        with shared_data.word_lock:
-            for plugin in plugins:
-                commit = plugin.transform(commit)
+        # Outside the lock: translation takes GPU time and plugins don't touch
+        # shared state.
+        for plugin in plugins:
+            commit = plugin.transform(commit)
 
+        with shared_data.word_lock:
             if len(commit.delta) > 0 or len(commit.preview) > 0:
                 # Avoid re-sending text after long pauses
                 if shared_data.cfg["reset_after_silence_s"] > 0:

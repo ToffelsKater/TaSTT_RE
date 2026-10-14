@@ -6,7 +6,7 @@
     <title>TaSTT</title>
     <link rel="stylesheet" href="output.css">
 </head>
-<body class="bg-gray-100">
+<body>
     <div class="container-fluid px-6 py-6 h-screen flex flex-col">
         <div class="flex flex-1 gap-6 overflow-hidden">
             <!-- Left Panel: Configuration Form -->
@@ -14,11 +14,16 @@
                 <!-- Loading Overlay -->
                 <div id="loading-overlay" class="absolute inset-0 bg-white bg-opacity-75 backdrop-blur-sm z-50 hidden flex items-center justify-center">
                     <div class="text-center p-6">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <div class="y2k-spinner animate-spin"></div>
                         <p class="text-gray-700 font-medium"></p>
                     </div>
                 </div>
                 
+                <header class="y2k-header">
+                    <h1 class="y2k-logo">TaSTT</h1>
+                    <p class="y2k-tagline">&#x2726; speech to text &#x2726;</p>
+                </header>
+
                 <!-- Scrollable form container -->
                 <div class="overflow-y-auto flex-1">
                     <form id="config-form" class="space-y-6 pr-3">
@@ -310,7 +315,7 @@
                         </section>
 
                         <!-- Advanced settings toggle -->
-                        <button type="button" id="toggle-advanced" class="flex items-center gap-2 text-gray-600 hover:text-gray-800 font-medium">
+                        <button type="button" id="toggle-advanced" class="advanced-toggle flex items-center gap-2">
                             <svg id="chevron" class="w-5 h-5 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
@@ -550,14 +555,18 @@
                     </form>
                     
                     <!-- Status Message -->
-                    <div id="status-message" class="mt-6 p-4 rounded-md hidden"></div>
+                    <div id="status-message" class="mt-6 p-4 rounded-2xl border border-white shadow-md hidden"></div>
                 </div>
             </div>
 
             <!-- Right Panel: Python Console -->
-            <div class="flex-1 flex flex-col bg-gray-900 rounded-lg overflow-hidden">
+            <div class="console-window flex-1 flex flex-col overflow-hidden">
+                <div class="console-titlebar">
+                    <span class="console-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                    <span class="console-title">TaSTT.exe &#x2726; console</span>
+                </div>
                 <div id="python-console" class="flex-1 overflow-y-auto p-4 font-mono text-sm">
-                    <div id="console-content" class="text-gray-300 whitespace-pre-wrap"></div>
+                    <div id="console-content" class="whitespace-pre-wrap"></div>
                 </div>
             </div>
         </div>

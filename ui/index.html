@@ -10,18 +10,18 @@
     <div class="container-fluid px-6 py-6 h-screen flex flex-col">
         <div class="flex flex-1 gap-6 overflow-hidden">
             <!-- Left Panel: Configuration Form -->
-            <div class="max-w-96 relative flex flex-col overflow-hidden rounded-lg">
+            <div class="max-w-96 relative flex flex-col overflow-hidden">
                 <!-- Loading Overlay -->
-                <div id="loading-overlay" class="absolute inset-0 bg-white bg-opacity-75 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+                <div id="loading-overlay" class="absolute inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center">
                     <div class="text-center p-6">
-                        <div class="y2k-spinner animate-spin"></div>
-                        <p class="text-gray-700 font-medium"></p>
+                        <div class="metro-spinner animate-spin"></div>
+                        <p class="text-white"></p>
                     </div>
                 </div>
-                
-                <header class="y2k-header">
-                    <h1 class="y2k-logo">TaSTT</h1>
-                    <p class="y2k-tagline">&#x2726; speech to text &#x2726;</p>
+
+                <header class="metro-header">
+                    <h1 class="metro-logo">TaSTT</h1>
+                    <p class="metro-tagline">speech to text</p>
                 </header>
 
                 <!-- Scrollable form container -->
@@ -378,7 +378,7 @@
                                 <div>
                                     <label for="user_prompt" class="form-label">
                                         Prompt
-                                        <span class="text-gray-500 text-xs block mt-1"
+                                        <span class="text-gray-400text-xs block mt-1"
                                               title="Whisper is given this prompt before transcribing. It helps guide the transcription style. For example, you could improve the spelling of your friends' names with: 'My friends' names are Saoirse, Azariah, and Caoimhe.'">
                                             (Hover for details)
                                         </span>
@@ -391,7 +391,7 @@
                                     <div>
                                         <label for="beam_size" class="form-label">
                                             Beam size
-                                            <span class="text-gray-500 text-xs block mt-1"
+                                            <span class="text-gray-400text-xs block mt-1"
                                                   title="Number of beams for beam search. Higher values may improve accuracy but increase compute time.">
                                                 (Search width)
                                             </span>
@@ -401,7 +401,7 @@
                                     <div>
                                         <label for="best_of" class="form-label">
                                             Best of
-                                            <span class="text-gray-500 text-xs block mt-1"
+                                            <span class="text-gray-400text-xs block mt-1"
                                                   title="Number of candidates to generate when sampling. The best one will be selected.">
                                                 (Sampling candidates)
                                             </span>
@@ -481,7 +481,7 @@
                                     <div>
                                         <label for="volume" class="form-label">
                                             Local Beep Volume
-                                            <span id="volume-display" class="text-gray-500 text-sm ml-2">30%</span>
+                                            <span id="volume-display" class="text-gray-400text-sm ml-2">30%</span>
                                         </label>
                                         <input type="range" id="volume" min="0" max="100" step="10" value="30" class="form-input w-full">
                                     </div>
@@ -544,10 +544,10 @@
                         <!-- Action Buttons -->
                         <div class="pb-6">
                             <div class="flex space-x-3">
-                                <button type="button" id="start-process" class="btn btn-green flex-1">
+                                <button type="button" id="start-process" class="btn btn-green btn-tile flex-1">
                                     Start
                                 </button>
-                                <button type="button" id="stop-process" class="btn btn-red flex-1">
+                                <button type="button" id="stop-process" class="btn btn-red btn-tile flex-1">
                                     Stop
                                 </button>
                             </div>
@@ -555,16 +555,13 @@
                     </form>
                     
                     <!-- Status Message -->
-                    <div id="status-message" class="mt-6 p-4 rounded-2xl border border-white shadow-md hidden"></div>
+                    <div id="status-message" class="mt-6 p-4 hidden"></div>
                 </div>
             </div>
 
             <!-- Right Panel: Python Console -->
             <div class="console-window flex-1 flex flex-col overflow-hidden">
-                <div class="console-titlebar">
-                    <span class="console-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-                    <span class="console-title">TaSTT.exe &#x2726; console</span>
-                </div>
+                <h2 class="console-titlebar">console</h2>
                 <div id="python-console" class="flex-1 overflow-y-auto p-4 font-mono text-sm">
                     <div id="console-content" class="whitespace-pre-wrap"></div>
                 </div>

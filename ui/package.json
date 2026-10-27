@@ -1,6 +1,6 @@
 {
   "name": "TaSTT",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Speech-to-text tool for VRChat",
   "main": "index.js",
   "homepage": "./",
@@ -14,7 +14,6 @@
     "prebuild": "node -e \"require('fs').mkdirSync('../Models',{recursive:true})\" && node build_scripts/setup-embedded-python.js",
     "dist": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder",
     "dist:win": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder --win",
-    "dist:portable": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder --win portable",
     "dist:zip": "npm run prebuild && npm run clean:meta && npm run build:css && electron-builder --win zip"
   },
   "build": {
@@ -74,17 +73,10 @@
       "icon": "../Images/favicon.ico",
       "target": [
         {
-          "target": "portable",
-          "arch": ["x64"]
-        },
-        {
           "target": "zip",
           "arch": ["x64"]
         }
       ]
-    },
-    "portable": {
-      "artifactName": "${productName}-${version}-portable.exe"
     },
     "nsis": {
       "oneClick": false,

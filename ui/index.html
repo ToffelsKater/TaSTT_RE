@@ -10,7 +10,7 @@
     <div class="container-fluid px-6 py-6 h-screen flex flex-col">
         <div class="flex flex-1 gap-6 overflow-hidden">
             <!-- Left Panel: Configuration Form -->
-            <div class="max-w-96 relative flex flex-col overflow-hidden">
+            <div class="w-[28rem] flex-none relative flex flex-col overflow-hidden">
                 <!-- Loading Overlay -->
                 <div id="loading-overlay" class="absolute inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center">
                     <div class="text-center p-6">
@@ -29,7 +29,8 @@
                     <form id="config-form" class="space-y-6 pr-3">
                         <!-- Basic settings (Always Visible) -->
                         <section class="config-section">
-                            <div class="grid grid-cols-2 gap-4">
+                            <h2 class="section-title"><i class="icon">&#xE9E9;</i>Model &amp; Language</h2>
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label for="model" class="form-label">Model</label>
                                     <select id="model" class="form-input">
@@ -273,20 +274,18 @@
                                         <option value="nllb-200-distilled-1.3B">NLLB 1.3B (better)</option>
                                     </select>
                                 </div>
-                                <div class="col-span-2">
-                                    <label for="microphone" class="form-label">Microphone</label>
-                                    <div class="flex gap-2">
-                                        <select id="microphone" class="form-input flex-1">
+                                <div class="col-span-2 flex gap-3">
+                                    <div class="flex-1 min-w-0" data-icon="&#xE720;">
+                                        <label for="microphone" class="form-label">Microphone</label>
+                                        <select id="microphone" class="form-input">
                                             <option value="">Loading microphones...</option>
                                         </select>
-                                        <button type="button" id="refresh-microphones" class="btn btn-gray px-3 py-2 flex items-center" title="Refresh microphone list">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                                            </svg>
-                                        </button>
                                     </div>
+                                    <button type="button" id="refresh-microphones" class="btn btn-blue btn-square" title="Refresh microphone list">
+                                        <i class="icon">&#xE72C;</i>
+                                    </button>
                                 </div>
-                                <div>
+                                <div data-icon="&#xE7C9;">
                                     <label for="button_hand" class="form-label">
                                         VR Hand
                                     </label>
@@ -295,7 +294,7 @@
                                         <option value="right">Right</option>
                                     </select>
                                 </div>
-                                <div>
+                                <div data-icon="&#xE7FC;">
                                     <label for="button_type" class="form-label">
                                         VR Button
                                     </label>
@@ -305,7 +304,7 @@
                                         <option value="thumbstick">Thumbstick</option>
                                     </select>
                                 </div>
-                                <div class="col-span-2">
+                                <div class="col-span-2" data-icon="&#xE765;">
                                     <label for="keybind" class="form-label">
                                         Keyboard Binding
                                     </label>
@@ -326,8 +325,8 @@
                         <div id="advanced-settings" class="hidden space-y-6">
                             <!-- Compute Settings -->
                             <section class="config-section">
-                                <h2 class="section-title">Compute Settings</h2>
-                                <div class="grid grid-cols-2 gap-4">
+                                <h2 class="section-title"><i class="icon">&#xE950;</i>Compute Settings</h2>
+                                <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label for="compute_type" class="form-label">Compute Type</label>
                                         <select id="compute_type" class="form-input">
@@ -351,8 +350,8 @@
 
                             <!-- Audio Settings -->
                             <section class="config-section">
-                                <h2 class="section-title">Voice Activity Detection</h2>
-                                <div class="grid grid-cols-2 gap-4">
+                                <h2 class="section-title"><i class="icon">&#xE9D9;</i>Voice Activity Detection</h2>
+                                <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label for="max_speech_duration_s" class="form-label">Max Speech Duration (seconds)</label>
                                         <input type="number" id="max_speech_duration_s" min="1" value="10" class="form-input">
@@ -374,7 +373,7 @@
 
                             <!-- Transcription Settings -->
                             <section class="config-section">
-                                <h2 class="section-title">Transcription Settings</h2>
+                                <h2 class="section-title"><i class="icon">&#xE8A5;</i>Transcription Settings</h2>
                                 <div>
                                     <label for="user_prompt" class="form-label">
                                         Prompt
@@ -387,7 +386,7 @@
                                               class="form-input h-20 resize-none" 
                                               placeholder="My friends' names are Saoirse, Azariah, and Caoimhe."></textarea>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4 mt-4">
+                                <div class="grid grid-cols-2 gap-3 mt-4">
                                     <div>
                                         <label for="beam_size" class="form-label">
                                             Beam size
@@ -413,7 +412,7 @@
 
                             <!-- Performance Settings -->
                             <section class="config-section">
-                                <h2 class="section-title">Performance Settings</h2>
+                                <h2 class="section-title"><i class="icon">&#xEC4A;</i>Performance Settings</h2>
                                 <div>
                                     <label for="transcription_loop_delay_ms" class="form-label">Transcription Loop Delay (ms)</label>
                                     <input type="number" id="transcription_loop_delay_ms" min="0" value="100" class="form-input">
@@ -422,7 +421,7 @@
 
                             <!-- Debug/Preview Settings -->
                             <section class="config-section">
-                                <h2 class="section-title">Debug/Preview Settings</h2>
+                                <h2 class="section-title"><i class="icon">&#xEBE8;</i>Debug/Preview Settings</h2>
                                 <div class="space-y-3">
                                     <label for="enable_debug_mode" class="checkbox-label">
                                         <input type="checkbox" id="enable_debug_mode" class="mr-2">
@@ -445,7 +444,7 @@
 
                             <!-- Text Filters -->
                             <section class="config-section">
-                                <h2 class="section-title">Text Filters</h2>
+                                <h2 class="section-title"><i class="icon">&#xE71C;</i>Text Filters</h2>
                                 <div class="space-y-3">
                                     <label for="enable_lowercase_filter" class="checkbox-label">
                                         <input type="checkbox" id="enable_lowercase_filter" class="mr-2">
@@ -472,7 +471,7 @@
 
                             <!-- Input Settings -->
                             <section class="config-section">
-                                <h2 class="section-title">Input Settings</h2>
+                                <h2 class="section-title"><i class="icon">&#xE765;</i>Input Settings</h2>
                                 <div class="space-y-4">
                                     <label for="reset_on_toggle" class="checkbox-label">
                                         <input type="checkbox" id="reset_on_toggle" class="mr-2">
@@ -490,14 +489,14 @@
 
                             <!-- Display Settings -->
                             <section class="config-section">
-                                <h2 class="section-title">Custom Chatbox Settings</h2>
+                                <h2 class="section-title"><i class="icon">&#xE8BD;</i>Custom Chatbox Settings</h2>
                                 <div class="mb-4">
                                     <label for="use_builtin" class="checkbox-label">
                                         <input type="checkbox" id="use_builtin" class="mr-2">
                                         <span class="checkbox-text">Use built-in VRChat chatbox</span>
                                     </label>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label for="block_width" class="form-label">Block Width</label>
                                         <input type="number" id="block_width" min="1" value="2" class="form-input">
@@ -519,7 +518,7 @@
 
                             <!-- Configuration Settings -->
                             <section class="config-section">
-                                <h2 class="section-title">Configuration</h2>
+                                <h2 class="section-title"><i class="icon">&#xE713;</i>Configuration</h2>
                                 <div>
                                     <button type="button" id="reset-config" class="btn btn-blue w-full">
                                         Reset Config to Defaults
@@ -529,7 +528,7 @@
 
                             <!-- Virtual Environment Settings -->
                             <section class="config-section">
-                                <h2 class="section-title">Virtual Environment</h2>
+                                <h2 class="section-title"><i class="icon">&#xE943;</i>Virtual Environment</h2>
                                 <div class="flex space-x-3">
                                     <button type="button" id="setup-venv" class="btn btn-blue flex-1">
                                         Setup venv
@@ -561,7 +560,7 @@
 
             <!-- Right Panel: Python Console -->
             <div class="console-window flex-1 flex flex-col overflow-hidden">
-                <h2 class="console-titlebar">console</h2>
+                <h2 class="console-titlebar"><i class="console-icon icon">&#xE756;</i>console</h2>
                 <div id="python-console" class="flex-1 overflow-y-auto p-4 font-mono text-sm">
                     <div id="console-content" class="whitespace-pre-wrap"></div>
                 </div>

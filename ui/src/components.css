@@ -2,117 +2,247 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Metro theme: flat dark surface, Segoe UI type, square solid-color tiles. */
+/* Metro theme: navy surface, slate panels with header bars, slate fields
+   with the label inside and a solid accent block on dropdowns. */
 :root {
-    --metro-bg: #1d1f21;
-    --metro-panel: #2a2c2e;
+    --metro-bg: #131a29;
+    --metro-panel: #1c273b;
+    --metro-panel-head: #23314a;
+    --metro-field: #2a3852;
+    --metro-field-hover: #33476a;
     --metro-text: #ffffff;
-    --metro-muted: #a8a8a8;
-    --metro-accent: #2d89ef;
-    --metro-input: #e8e8e8;
+    --metro-muted: #a3b2c8;
+    --metro-accent: #0a84ff;
+    --metro-accent-dark: #0a6fd6;
+    --metro-icons: "Segoe Fluent Icons", "Segoe MDL2 Assets", sans-serif;
 }
 
 @layer components {
+    .icon {
+        font-family: var(--metro-icons);
+        font-style: normal;
+        line-height: 1;
+    }
+
     .metro-header {
         @apply flex items-baseline justify-between px-1 pb-5;
     }
 
     .metro-logo {
-        font-size: 2.75rem;
+        font-size: 3rem;
         font-weight: 300;
         line-height: 1;
         letter-spacing: -0.01em;
     }
 
     .metro-tagline {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
         color: var(--metro-muted);
     }
 
     .config-section {
-        padding: 1.25rem;
+        padding: 0 0.75rem 0.9rem;
         background: var(--metro-panel);
     }
 
+    /* Header bar across the top of each panel. */
     .section-title {
-        margin-bottom: 0.9rem;
-        font-size: 1.35rem;
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin: 0 -0.75rem 0.9rem;
+        padding: 0.7rem 1rem;
+        font-size: 1.25rem;
         font-weight: 300;
-        line-height: 1.1;
-        text-transform: lowercase;
+        line-height: 1.2;
+        background: var(--metro-panel-head);
+    }
+
+    .section-title .icon {
+        font-size: 1.25rem;
+    }
+
+    /* A field is the wrapper around a label and its control. */
+    .config-section div:has(> .form-input) {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 3.6rem;
+        padding: 0.45rem 0.8rem;
+        background: var(--metro-field);
+        transition: background-color 0.1s, box-shadow 0.1s;
+    }
+
+    .config-section div:has(> .form-input):hover {
+        background: var(--metro-field-hover);
+    }
+
+    .config-section div:has(> .form-input):focus-within {
+        box-shadow: inset 0 -2px 0 var(--metro-accent);
+    }
+
+    .config-section div:has(> select.form-input) {
+        padding-right: 3.5rem;
+    }
+
+    .config-section div:has(> select.form-input:focus-visible) {
+        background: var(--metro-accent);
+        box-shadow: none;
+    }
+
+    .config-section div:has(> select.form-input:open) {
+        background: var(--metro-accent-dark);
+        box-shadow: none;
+    }
+
+    .config-section div:has(> .form-input:disabled) {
+        opacity: 0.5;
+    }
+
+    /* Optional glyph on the left of a field, from data-icon. */
+    .config-section div[data-icon] {
+        padding-left: 3rem;
+    }
+
+    .config-section div[data-icon]::before {
+        content: attr(data-icon);
+        position: absolute;
+        top: 50%;
+        left: 0.85rem;
+        transform: translateY(-50%);
+        font-family: var(--metro-icons);
+        font-size: 1.3rem;
+        color: #d3dcea;
     }
 
     .form-label {
         display: block;
-        margin-bottom: 0.3rem;
-        font-size: 0.8rem;
+        margin-bottom: 0.1rem;
+        font-size: 0.75rem;
         color: var(--metro-muted);
     }
 
     .form-label span {
-        color: #8a8a8a;
+        color: #8c9bb3;
     }
 
     .form-input {
         width: 100%;
-        padding: 0.4rem 0.6rem;
-        font-size: 0.875rem;
-        color: #000;
-        background: var(--metro-input);
-        border: 2px solid var(--metro-input);
+        padding: 0;
+        font-size: 1rem;
+        color: #fff;
+        background: transparent;
+        border: 0;
         border-radius: 0;
-        transition: background-color 0.1s, border-color 0.1s;
-    }
-
-    .form-input:hover {
-        background: #f4f4f4;
-        border-color: #f4f4f4;
     }
 
     .form-input:focus {
         outline: none;
-        background: #fff;
-        border-color: var(--metro-accent);
     }
 
-    /* CSP blocks data: URLs, so the select arrow is drawn with gradients. */
+    .form-input::placeholder {
+        color: #8c9bb3;
+    }
+
+    textarea.form-input {
+        font-size: 0.875rem;
+    }
+
+    /* Customizable select (Chromium 135+, Electron 36): styled flyout. */
+    select.form-input,
+    select.form-input::picker(select) {
+        appearance: base-select;
+    }
+
     select.form-input {
-        appearance: none;
-        padding-right: 2rem;
-        background-image:
-            linear-gradient(45deg, transparent 50%, #000 50%),
-            linear-gradient(135deg, #000 50%, transparent 50%);
-        background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
-        background-size: 5px 5px, 5px 5px;
-        background-repeat: no-repeat;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    /* The select is static, so this block fills the whole field. */
+    select.form-input::picker-icon {
+        content: "\E70D";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.9rem;
+        font-family: var(--metro-icons);
+        font-size: 1rem;
+        color: #fff;
+        background: var(--metro-accent);
+    }
+
+    select.form-input:open::picker-icon {
+        content: "\E70E";
+    }
+
+    select.form-input:disabled::picker-icon {
+        background: transparent;
+    }
+
+    select.form-input::picker(select) {
+        max-height: 20rem;
+        margin-top: 0.45rem;
+        padding: 0;
+        color: #fff;
+        background: #243149;
+        border: 0;
+        border-radius: 0;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+        scrollbar-color: #45567a #243149;
+    }
+
+    select.form-input option {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.95rem;
+    }
+
+    select.form-input option:hover,
+    select.form-input option:focus-visible {
+        background: var(--metro-field-hover);
+        outline: none;
+    }
+
+    select.form-input option:checked {
+        background: var(--metro-accent);
+    }
+
+    select.form-input option::checkmark {
+        display: none;
     }
 
     input[type="range"].form-input {
         height: 1.25rem;
-        padding: 0;
-        border: 0;
-        background: none;
     }
 
     .checkbox-label {
         display: flex;
         align-items: center;
-        padding: 0.4rem 0.5rem;
+        padding: 0.45rem 0.5rem;
         cursor: pointer;
     }
 
     .checkbox-label:hover {
-        background-color: rgba(255, 255, 255, 0.08);
+        background-color: rgba(255, 255, 255, 0.06);
     }
 
     .checkbox-text {
-        font-size: 0.875rem;
+        margin-left: 0.4rem;
+        font-size: 1rem;
     }
 
     /* Flat tile button. Pressing it tilts it in, like a Start tile. */
     .btn {
         padding: 0.6rem 1rem;
-        font-size: 0.875rem;
+        font-size: 0.9rem;
         color: #fff;
         background: var(--btn-bg);
         border: 2px solid var(--btn-bg);
@@ -146,22 +276,36 @@
         text-align: left;
     }
 
-    .btn-blue { --btn-bg: #2d89ef; }
+    /* Square icon tile next to a field. */
+    .btn-square {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 3.6rem;
+        padding: 0;
+        font-size: 1.3rem;
+    }
+
+    .btn-blue { --btn-bg: var(--metro-accent); }
     .btn-green { --btn-bg: #00a300; }
     .btn-red { --btn-bg: #e51400; }
     .btn-purple { --btn-bg: #603cba; }
     .btn-orange { --btn-bg: #da532c; }
-    .btn-gray { --btn-bg: #4a4c4e; }
+    .btn-gray { --btn-bg: var(--metro-field); }
 
     .advanced-toggle {
-        font-size: 1.1rem;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1.25rem;
         font-weight: 300;
         text-transform: lowercase;
-        color: var(--metro-text);
+        color: #fff;
+        background: linear-gradient(90deg, var(--metro-accent-dark), var(--metro-accent));
+        transition: filter 0.1s;
     }
 
     .advanced-toggle:hover {
-        color: var(--metro-accent);
+        filter: brightness(1.12);
     }
 
     .metro-spinner {
@@ -174,15 +318,28 @@
     }
 
     .console-window {
-        background: #111213;
+        background: #0e1422;
+        border: 1px solid var(--metro-panel-head);
     }
 
     .console-titlebar {
-        padding: 0.9rem 1rem 0.2rem;
-        font-size: 1.35rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 1.6rem;
         font-weight: 300;
-        line-height: 1.1;
-        text-transform: lowercase;
+        line-height: 1;
+        background: var(--metro-accent-dark);
+    }
+
+    .console-icon {
+        display: grid;
+        place-items: center;
+        width: 2.75rem;
+        height: 2.75rem;
+        font-size: 1.4rem;
+        background: var(--metro-accent);
     }
 }
 
@@ -197,6 +354,7 @@ body {
     color: var(--metro-text);
     background: var(--metro-bg);
     accent-color: var(--metro-accent);
+    color-scheme: dark;
 }
 
 .container-fluid {
@@ -204,9 +362,37 @@ body {
     height: 100vh;
 }
 
+/* Square checkbox: accent fill with a white check glyph. */
 input[type="checkbox"] {
-    width: 1rem;
-    height: 1rem;
+    appearance: none;
+    position: relative;
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    background: var(--metro-field);
+    border: 2px solid #4a5b7a;
+    cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+    background: var(--metro-accent);
+    border-color: var(--metro-accent);
+}
+
+input[type="checkbox"]:checked::after {
+    content: "\E73E";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--metro-icons);
+    font-size: 1rem;
+    color: #fff;
+}
+
+input[type="checkbox"]:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
 }
 
 /* Console styling */
@@ -216,7 +402,7 @@ input[type="checkbox"] {
 }
 
 #console-content {
-    color: #d4d4d4;
+    color: #d4dae6;
     word-wrap: break-word;
 }
 
@@ -230,11 +416,11 @@ input[type="checkbox"] {
 }
 
 .console-info {
-    color: #5cb8ff;
+    color: #4fb1ff;
 }
 
 .console-timestamp {
-    color: #7a7a7a;
+    color: #7c8aa3;
     font-size: 0.875rem;
 }
 
@@ -248,11 +434,11 @@ input[type="checkbox"] {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #555;
+    background: #3a4a68;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #777;
+    background: #4f6390;
 }
 
 /* Ensure buttons have proper disabled states */

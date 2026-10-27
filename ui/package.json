@@ -1,6 +1,6 @@
 {
   "name": "TaSTT",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Speech-to-text tool for VRChat",
   "main": "index.js",
   "homepage": "./",

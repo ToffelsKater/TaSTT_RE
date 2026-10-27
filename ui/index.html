@@ -21,7 +21,7 @@
 
                 <header class="metro-header">
                     <h1 class="metro-logo">TaSTT</h1>
-                    <p class="metro-tagline">speech to text</p>
+                    <p class="metro-tagline">Speech to text</p>
                 </header>
 
                 <!-- Scrollable form container -->
@@ -274,18 +274,18 @@
                                         <option value="nllb-200-distilled-1.3B">NLLB 1.3B (better)</option>
                                     </select>
                                 </div>
-                                <div class="col-span-2 flex gap-3">
-                                    <div class="flex-1 min-w-0" data-icon="&#xE720;">
+                                <div class="col-span-2 flex items-end gap-2">
+                                    <div class="flex-1 min-w-0">
                                         <label for="microphone" class="form-label">Microphone</label>
                                         <select id="microphone" class="form-input">
                                             <option value="">Loading microphones...</option>
                                         </select>
                                     </div>
-                                    <button type="button" id="refresh-microphones" class="btn btn-blue btn-square" title="Refresh microphone list">
+                                    <button type="button" id="refresh-microphones" class="btn btn-secondary btn-square" title="Refresh microphone list">
                                         <i class="icon">&#xE72C;</i>
                                     </button>
                                 </div>
-                                <div data-icon="&#xE7C9;">
+                                <div>
                                     <label for="button_hand" class="form-label">
                                         VR Hand
                                     </label>
@@ -294,7 +294,7 @@
                                         <option value="right">Right</option>
                                     </select>
                                 </div>
-                                <div data-icon="&#xE7FC;">
+                                <div>
                                     <label for="button_type" class="form-label">
                                         VR Button
                                     </label>
@@ -304,7 +304,7 @@
                                         <option value="thumbstick">Thumbstick</option>
                                     </select>
                                 </div>
-                                <div class="col-span-2" data-icon="&#xE765;">
+                                <div class="col-span-2">
                                     <label for="keybind" class="form-label">
                                         Keyboard Binding
                                     </label>
@@ -314,8 +314,8 @@
                         </section>
 
                         <!-- Advanced settings toggle -->
-                        <button type="button" id="toggle-advanced" class="advanced-toggle flex items-center gap-2">
-                            <svg id="chevron" class="w-5 h-5 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button type="button" id="toggle-advanced" class="advanced-toggle gap-2">
+                            <svg id="chevron" class="w-4 h-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
                             Advanced Settings
@@ -341,7 +341,7 @@
                                     </div>
                                     <div class="col-span-2">
                                         <label for="use_cpu" class="checkbox-label">
-                                            <input type="checkbox" id="use_cpu" class="mr-2">
+                                            <input type="checkbox" id="use_cpu">
                                             <span class="checkbox-text">Use CPU</span>
                                         </label>
                                     </div>
@@ -424,19 +424,19 @@
                                 <h2 class="section-title"><i class="icon">&#xEBE8;</i>Debug/Preview Settings</h2>
                                 <div class="space-y-3">
                                     <label for="enable_debug_mode" class="checkbox-label">
-                                        <input type="checkbox" id="enable_debug_mode" class="mr-2">
+                                        <input type="checkbox" id="enable_debug_mode">
                                         <span class="checkbox-text">Enable Debug Mode</span>
                                     </label>
                                     <label for="enable_previews" class="checkbox-label">
-                                        <input type="checkbox" id="enable_previews" checked class="mr-2">
+                                        <input type="checkbox" id="enable_previews" checked>
                                         <span class="checkbox-text">Enable Previews</span>
                                     </label>
                                     <label for="save_audio" class="checkbox-label">
-                                        <input type="checkbox" id="save_audio" class="mr-2">
+                                        <input type="checkbox" id="save_audio">
                                         <span class="checkbox-text">Save Audio Segments</span>
                                     </label>
                                     <label for="enable_segment_logging" class="checkbox-label">
-                                        <input type="checkbox" id="enable_segment_logging" class="mr-2">
+                                        <input type="checkbox" id="enable_segment_logging">
                                         <span class="checkbox-text">Log Segment Metadata</span>
                                     </label>
                                 </div>
@@ -447,23 +447,23 @@
                                 <h2 class="section-title"><i class="icon">&#xE71C;</i>Text Filters</h2>
                                 <div class="space-y-3">
                                     <label for="enable_lowercase_filter" class="checkbox-label">
-                                        <input type="checkbox" id="enable_lowercase_filter" class="mr-2">
+                                        <input type="checkbox" id="enable_lowercase_filter">
                                         <span class="checkbox-text">Convert to lowercase</span>
                                     </label>
                                     <label for="enable_uppercase_filter" class="checkbox-label">
-                                        <input type="checkbox" id="enable_uppercase_filter" class="mr-2">
+                                        <input type="checkbox" id="enable_uppercase_filter">
                                         <span class="checkbox-text">Convert to uppercase</span>
                                     </label>
                                     <label for="enable_profanity_filter" class="checkbox-label">
-                                        <input type="checkbox" id="enable_profanity_filter" class="mr-2">
+                                        <input type="checkbox" id="enable_profanity_filter">
                                         <span class="checkbox-text">Filter profanity</span>
                                     </label>
                                     <label for="remove_trailing_period" class="checkbox-label">
-                                        <input type="checkbox" id="remove_trailing_period" class="mr-2">
+                                        <input type="checkbox" id="remove_trailing_period">
                                         <span class="checkbox-text">Remove trailing period</span>
                                     </label>
                                     <label for="enable_orig_lang" class="checkbox-label">
-                                        <input type="checkbox" id="enable_orig_lang" checked class="mr-2">
+                                        <input type="checkbox" id="enable_orig_lang" checked>
                                         <span class="checkbox-text">Show original text next to translation</span>
                                     </label>
                                 </div>
@@ -474,7 +474,7 @@
                                 <h2 class="section-title"><i class="icon">&#xE765;</i>Input Settings</h2>
                                 <div class="space-y-4">
                                     <label for="reset_on_toggle" class="checkbox-label">
-                                        <input type="checkbox" id="reset_on_toggle" class="mr-2">
+                                        <input type="checkbox" id="reset_on_toggle">
                                         <span class="checkbox-text">Reset transcript on toggle</span>
                                     </label>
                                     <div>
@@ -492,7 +492,7 @@
                                 <h2 class="section-title"><i class="icon">&#xE8BD;</i>Custom Chatbox Settings</h2>
                                 <div class="mb-4">
                                     <label for="use_builtin" class="checkbox-label">
-                                        <input type="checkbox" id="use_builtin" class="mr-2">
+                                        <input type="checkbox" id="use_builtin">
                                         <span class="checkbox-text">Use built-in VRChat chatbox</span>
                                     </label>
                                 </div>
@@ -542,12 +542,12 @@
 
                         <!-- Action Buttons -->
                         <div class="pb-6">
-                            <div class="flex space-x-3">
+                            <div class="flex gap-2">
                                 <button type="button" id="start-process" class="btn btn-green btn-tile flex-1">
-                                    Start
+                                    <i class="icon">&#xE768;</i>Start
                                 </button>
                                 <button type="button" id="stop-process" class="btn btn-red btn-tile flex-1">
-                                    Stop
+                                    <i class="icon">&#xE71A;</i>Stop
                                 </button>
                             </div>
                         </div>
@@ -560,7 +560,7 @@
 
             <!-- Right Panel: Python Console -->
             <div class="console-window flex-1 flex flex-col overflow-hidden">
-                <h2 class="console-titlebar"><i class="console-icon icon">&#xE756;</i>console</h2>
+                <h2 class="console-titlebar"><i class="icon">&#xE756;</i>Console</h2>
                 <div id="python-console" class="flex-1 overflow-y-auto p-4 font-mono text-sm">
                     <div id="console-content" class="whitespace-pre-wrap"></div>
                 </div>

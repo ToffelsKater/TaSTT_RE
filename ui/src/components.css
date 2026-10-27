@@ -2,154 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Metro theme: navy surface, slate panels with header bars, slate fields
-   with the label inside and a solid accent block on dropdowns. */
+/* Metro UI Kit (dark theme). Token names and values follow the design
+   system's tokens.json: flat, square, no gradients or shadows; accent only
+   for primary and selected states. */
 :root {
-    --metro-bg: #131a29;
-    --metro-panel: #1c273b;
-    --metro-panel-head: #23314a;
-    --metro-field: #2a3852;
-    --metro-field-hover: #33476a;
-    --metro-text: #ffffff;
-    --metro-muted: #a3b2c8;
-    --metro-accent: #0a84ff;
-    --metro-accent-dark: #0a6fd6;
-    --metro-icons: "Segoe Fluent Icons", "Segoe MDL2 Assets", sans-serif;
+    --surface-page: #121c27;
+    --surface-panel: #151f2a;
+    --surface-menu: #1c2a3a;
+    --surface-control: #25374a;
+    --surface-input: #131e2a;
+    --surface-disabled: #1f2b38;
+    --surface-hover: #2a3b4d;
+    --line: #222f3e;
+    --line-strong: #4b5f76;
+    --ink: #ffffff;
+    --ink-muted: #a7b6c3;
+    --ink-subtle: #95a0aa;
+    --ink-disabled: #6a7e8c;
+    --accent: #0077f8;
+    --accent-hover: #0b93fe;
+    --accent-pressed: #0160b2;
+    --accent-select: #0083fd;
+    --on-accent: #ffffff;
+    --link: #19c6f7;
+    --focus: #0b80d8;
+    --success: #28bb4b;
+    --success-deep: #1a7b37;
+    --warning: #fba206;
+    --error: #f22a3c;
+    --on-status-dark: #121c27;
+    --track: #233244;
+    --control-disabled: #2d3c4c;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --radius-sm: 2px;
+    --radius-md: 4px;
+    --control-sm: 28px;
+    --control-md: 36px;
+    --tile-md: 84px;
+    --font-sans: "Segoe UI", "Open Sans", system-ui, -apple-system, sans-serif;
+    --font-icons: "Segoe Fluent Icons", "Segoe MDL2 Assets", sans-serif;
 }
 
 @layer components {
     .icon {
-        font-family: var(--metro-icons);
+        font-family: var(--font-icons);
         font-style: normal;
         line-height: 1;
     }
 
+    /* display + subtitle */
     .metro-header {
-        @apply flex items-baseline justify-between px-1 pb-5;
+        @apply flex flex-col px-1 pb-5;
     }
 
     .metro-logo {
-        font-size: 3rem;
-        font-weight: 300;
-        line-height: 1;
-        letter-spacing: -0.01em;
+        font-size: 36px;
+        font-weight: 500;
+        line-height: 44px;
     }
 
     .metro-tagline {
-        font-size: 0.9rem;
-        color: var(--metro-muted);
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--ink-muted);
     }
 
     .config-section {
-        padding: 0 0.75rem 0.9rem;
-        background: var(--metro-panel);
+        padding: var(--space-4);
+        background: var(--surface-panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
     }
 
-    /* Header bar across the top of each panel. */
+    /* title */
     .section-title {
         display: flex;
         align-items: center;
-        gap: 0.85rem;
-        margin: 0 -0.75rem 0.9rem;
-        padding: 0.7rem 1rem;
-        font-size: 1.25rem;
-        font-weight: 300;
-        line-height: 1.2;
-        background: var(--metro-panel-head);
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+        font-size: 17px;
+        font-weight: 400;
+        line-height: 24px;
     }
 
     .section-title .icon {
-        font-size: 1.25rem;
-    }
-
-    /* A field is the wrapper around a label and its control. */
-    .config-section div:has(> .form-input) {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-height: 3.6rem;
-        padding: 0.45rem 0.8rem;
-        background: var(--metro-field);
-        transition: background-color 0.1s, box-shadow 0.1s;
-    }
-
-    .config-section div:has(> .form-input):hover {
-        background: var(--metro-field-hover);
-    }
-
-    .config-section div:has(> .form-input):focus-within {
-        box-shadow: inset 0 -2px 0 var(--metro-accent);
-    }
-
-    .config-section div:has(> select.form-input) {
-        padding-right: 3.5rem;
-    }
-
-    .config-section div:has(> select.form-input:focus-visible) {
-        background: var(--metro-accent);
-        box-shadow: none;
-    }
-
-    .config-section div:has(> select.form-input:open) {
-        background: var(--metro-accent-dark);
-        box-shadow: none;
-    }
-
-    .config-section div:has(> .form-input:disabled) {
-        opacity: 0.5;
-    }
-
-    /* Optional glyph on the left of a field, from data-icon. */
-    .config-section div[data-icon] {
-        padding-left: 3rem;
-    }
-
-    .config-section div[data-icon]::before {
-        content: attr(data-icon);
-        position: absolute;
-        top: 50%;
-        left: 0.85rem;
-        transform: translateY(-50%);
-        font-family: var(--metro-icons);
-        font-size: 1.3rem;
-        color: #d3dcea;
+        font-size: 16px;
     }
 
     .form-label {
         display: block;
-        margin-bottom: 0.1rem;
-        font-size: 0.75rem;
-        color: var(--metro-muted);
+        margin-bottom: var(--space-1);
+        font-size: 12px;
+        line-height: 16px;
+        color: var(--ink);
     }
 
     .form-label span {
-        color: #8c9bb3;
+        color: var(--ink-muted);
     }
 
+    /* TextInput: dark square field, focus doubles the border in `focus`. */
     .form-input {
         width: 100%;
-        padding: 0;
-        font-size: 1rem;
-        color: #fff;
-        background: transparent;
-        border: 0;
+        height: var(--control-sm);
+        padding: 0 var(--space-2);
+        font-size: 12px;
+        color: var(--ink);
+        background: var(--surface-input);
+        border: 1px solid var(--line-strong);
         border-radius: 0;
+    }
+
+    .form-input::placeholder {
+        color: var(--ink-muted);
     }
 
     .form-input:focus {
         outline: none;
+        border-color: var(--focus);
+        box-shadow: 0 0 0 1px var(--focus);
     }
 
-    .form-input::placeholder {
-        color: #8c9bb3;
+    .form-input:disabled {
+        color: var(--ink-disabled);
+        background: var(--surface-disabled);
+        border-color: var(--line);
     }
 
     textarea.form-input {
-        font-size: 0.875rem;
+        height: auto;
+        min-height: 88px;
+        padding: var(--space-2);
     }
 
-    /* Customizable select (Chromium 135+, Electron 36): styled flyout. */
+    /* Dropdown: filled head with a chevron; the list sits flush under it,
+       same width, no gap. Built on the customizable select (Electron 36). */
     select.form-input,
     select.form-input::picker(select) {
         appearance: base-select;
@@ -158,104 +149,140 @@
     select.form-input {
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+        padding: 0 var(--space-3);
+        font-size: 13px;
+        background: var(--surface-control);
         white-space: nowrap;
         overflow: hidden;
         cursor: pointer;
     }
 
-    /* The select is static, so this block fills the whole field. */
+    select.form-input:hover:not(:disabled) {
+        border-color: var(--ink-muted);
+    }
+
+    select.form-input:focus {
+        border-color: var(--line-strong);
+        box-shadow: none;
+    }
+
+    select.form-input:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+    }
+
     select.form-input::picker-icon {
         content: "\E70D";
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 2.9rem;
-        font-family: var(--metro-icons);
-        font-size: 1rem;
-        color: #fff;
-        background: var(--metro-accent);
+        flex: none;
+        font-family: var(--font-icons);
+        font-size: 10px;
+        color: var(--ink);
     }
 
     select.form-input:open::picker-icon {
         content: "\E70E";
     }
 
-    select.form-input:disabled::picker-icon {
-        background: transparent;
-    }
-
     select.form-input::picker(select) {
         max-height: 20rem;
-        margin-top: 0.45rem;
+        margin: 0;
         padding: 0;
-        color: #fff;
-        background: #243149;
-        border: 0;
+        color: var(--ink);
+        background: var(--surface-menu);
+        border: 1px solid var(--line-strong);
+        border-top: 0;
         border-radius: 0;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
-        scrollbar-color: #45567a #243149;
+        box-shadow: none;
+        scrollbar-color: var(--line-strong) var(--surface-menu);
     }
 
     select.form-input option {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 0 var(--space-3);
+        font-size: 13px;
     }
 
     select.form-input option:hover,
     select.form-input option:focus-visible {
-        background: var(--metro-field-hover);
+        background: var(--surface-hover);
         outline: none;
     }
 
     select.form-input option:checked {
-        background: var(--metro-accent);
+        color: var(--on-accent);
+        background: var(--accent-select);
     }
 
     select.form-input option::checkmark {
         display: none;
     }
 
+    /* Slider: 4px track, round accent-hover thumb with an ink ring. */
     input[type="range"].form-input {
-        height: 1.25rem;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 4px;
+        margin: var(--space-3) 0;
+        padding: 0;
+        background: var(--track);
+        border: 0;
+        border-radius: 9999px;
+        box-shadow: none;
+    }
+
+    input[type="range"].form-input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--accent-hover);
+        border: 2px solid var(--ink);
+        border-radius: 9999px;
+    }
+
+    input[type="range"].form-input:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
     }
 
     .checkbox-label {
         display: flex;
         align-items: center;
-        padding: 0.45rem 0.5rem;
+        gap: var(--space-3);
+        min-height: 26px;
+        font-size: 13px;
         cursor: pointer;
     }
 
-    .checkbox-label:hover {
-        background-color: rgba(255, 255, 255, 0.06);
-    }
-
     .checkbox-text {
-        margin-left: 0.4rem;
-        font-size: 1rem;
+        font-size: 13px;
     }
 
-    /* Flat tile button. Pressing it tilts it in, like a Start tile. */
+    /* Button: flat, square, 36px, accent. */
     .btn {
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
-        color: #fff;
-        background: var(--btn-bg);
-        border: 2px solid var(--btn-bg);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-2);
+        height: var(--control-md);
+        padding: 0 var(--space-4);
+        font-size: 13px;
+        color: var(--on-accent);
+        background: var(--accent);
+        border: 1px solid transparent;
         border-radius: 0;
-        transition: border-color 0.1s, transform 0.08s;
+        cursor: pointer;
     }
 
     .btn:hover:not(:disabled) {
-        border-color: rgba(255, 255, 255, 0.6);
+        background: var(--accent-hover);
     }
 
     .btn:active:not(:disabled) {
-        transform: scale(0.97);
+        background: var(--accent-pressed);
     }
 
     .btn:focus {
@@ -263,83 +290,125 @@
     }
 
     .btn:focus-visible {
-        border-color: #fff;
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
     }
 
-    /* Wide tile: label in the bottom-left corner. */
+    .btn:disabled {
+        color: var(--ink-disabled);
+        background: var(--surface-disabled);
+        cursor: default;
+    }
+
+    .btn-gray,
+    .btn-secondary {
+        color: var(--ink);
+        background: transparent;
+        border-color: var(--line-strong);
+    }
+
+    .btn-gray:hover:not(:disabled),
+    .btn-secondary:hover:not(:disabled) {
+        background: var(--surface-hover);
+    }
+
+    .btn-gray:active:not(:disabled),
+    .btn-secondary:active:not(:disabled) {
+        background: var(--surface-control);
+    }
+
+    /* Tile: solid colour block with a large icon over a small caption. */
     .btn-tile {
-        display: flex;
-        align-items: flex-end;
-        height: 5.5rem;
-        padding: 0.5rem 0.7rem;
-        font-size: 1rem;
-        text-align: left;
+        flex-direction: column;
+        height: var(--tile-md);
+        font-size: 11px;
     }
 
-    /* Square icon tile next to a field. */
+    .btn-tile .icon {
+        font-size: 24px;
+    }
+
+    .btn-tile:hover:not(:disabled) {
+        outline: 2px solid var(--ink);
+        outline-offset: -2px;
+    }
+
+    /* Success tile uses on-status-dark text: white on success is 2.5:1. */
+    .btn-green,
+    .btn-green:hover:not(:disabled),
+    .btn-green:active:not(:disabled) {
+        color: var(--on-status-dark);
+        background: var(--success);
+    }
+
+    .btn-red,
+    .btn-red:hover:not(:disabled),
+    .btn-red:active:not(:disabled) {
+        background: var(--error);
+    }
+
+    .btn-tile:disabled {
+        color: var(--ink-disabled);
+        background: var(--surface-disabled);
+        outline: 0;
+    }
+
+    /* Square icon-only secondary button beside a field. */
     .btn-square {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 3.6rem;
+        width: var(--control-sm);
+        height: var(--control-sm);
         padding: 0;
-        font-size: 1.3rem;
+        font-size: 14px;
     }
-
-    .btn-blue { --btn-bg: var(--metro-accent); }
-    .btn-green { --btn-bg: #00a300; }
-    .btn-red { --btn-bg: #e51400; }
-    .btn-purple { --btn-bg: #603cba; }
-    .btn-orange { --btn-bg: #da532c; }
-    .btn-gray { --btn-bg: var(--metro-field); }
 
     .advanced-toggle {
+        display: flex;
+        align-items: center;
         width: 100%;
-        padding: 0.75rem 1rem;
-        font-size: 1.25rem;
-        font-weight: 300;
-        text-transform: lowercase;
-        color: #fff;
-        background: linear-gradient(90deg, var(--metro-accent-dark), var(--metro-accent));
-        transition: filter 0.1s;
+        height: var(--control-md);
+        padding: 0 var(--space-3);
+        font-size: 13px;
+        color: var(--ink);
+        border: 1px solid var(--line-strong);
     }
 
     .advanced-toggle:hover {
-        filter: brightness(1.12);
+        background: var(--surface-hover);
+    }
+
+    .advanced-toggle:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
     }
 
     .metro-spinner {
-        width: 2.5rem;
-        height: 2.5rem;
-        margin: 0 auto 1rem;
-        border: 3px solid rgba(255, 255, 255, 0.2);
-        border-top-color: #fff;
+        width: 20px;
+        height: 20px;
+        margin: 0 auto var(--space-3);
+        border: 2px solid var(--track);
+        border-top-color: var(--accent-hover);
         border-radius: 9999px;
     }
 
     .console-window {
-        background: #0e1422;
-        border: 1px solid var(--metro-panel-head);
+        padding: var(--space-4);
+        background: var(--surface-panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
     }
 
     .console-titlebar {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 0.5rem 0.75rem;
-        font-size: 1.6rem;
-        font-weight: 300;
-        line-height: 1;
-        background: var(--metro-accent-dark);
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+        font-size: 17px;
+        font-weight: 400;
+        line-height: 24px;
     }
 
-    .console-icon {
-        display: grid;
-        place-items: center;
-        width: 2.75rem;
-        height: 2.75rem;
-        font-size: 1.4rem;
-        background: var(--metro-accent);
+    .console-titlebar .icon {
+        font-size: 16px;
     }
 }
 
@@ -350,10 +419,12 @@ html, body {
 }
 
 body {
-    font-family: "Segoe UI", "Segoe UI Web", Tahoma, sans-serif;
-    color: var(--metro-text);
-    background: var(--metro-bg);
-    accent-color: var(--metro-accent);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--ink);
+    background: var(--surface-page);
+    accent-color: var(--accent);
     color-scheme: dark;
 }
 
@@ -362,21 +433,23 @@ body {
     height: 100vh;
 }
 
-/* Square checkbox: accent fill with a white check glyph. */
+/* Checkbox: 16px square, 2px radius, fills accent with a white tick. */
 input[type="checkbox"] {
     appearance: none;
     position: relative;
     flex: none;
-    width: 1.6rem;
-    height: 1.6rem;
-    background: var(--metro-field);
-    border: 2px solid #4a5b7a;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    background: var(--surface-input);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
     cursor: pointer;
 }
 
 input[type="checkbox"]:checked {
-    background: var(--metro-accent);
-    border-color: var(--metro-accent);
+    background: var(--accent);
+    border-color: var(--accent);
 }
 
 input[type="checkbox"]:checked::after {
@@ -385,46 +458,68 @@ input[type="checkbox"]:checked::after {
     inset: 0;
     display: grid;
     place-items: center;
-    font-family: var(--metro-icons);
-    font-size: 1rem;
-    color: #fff;
+    font-family: var(--font-icons);
+    font-size: 10px;
+    color: var(--on-accent);
 }
 
 input[type="checkbox"]:focus-visible {
-    outline: 2px solid #fff;
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
 }
 
-/* Console styling */
+/* Status message as a toast; renderer.js sets the Tailwind colour classes. */
+#status-message {
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    line-height: 16px;
+}
+
+#status-message.bg-green-100 {
+    color: var(--on-accent);
+    background: var(--success-deep);
+}
+
+#status-message.bg-red-100 {
+    color: var(--on-accent);
+    background: var(--error);
+}
+
+#status-message.bg-blue-100 {
+    color: var(--on-accent);
+    background: var(--accent);
+}
+
+/* Console log area: a read-only multiline field. */
 #python-console {
     font-family: Consolas, "Lucida Console", "Courier New", monospace;
     line-height: 1.45;
+    background: var(--surface-input);
+    border: 1px solid var(--line);
 }
 
 #console-content {
-    color: #d4dae6;
+    color: var(--ink);
     word-wrap: break-word;
 }
 
-/* Console text colors */
 .console-stdout {
     color: #8ae28a;
 }
 
 .console-stderr {
-    color: #ff6b5b;
+    color: #ff6b6b;
 }
 
 .console-info {
-    color: #4fb1ff;
+    color: var(--link);
 }
 
 .console-timestamp {
-    color: #7c8aa3;
+    color: var(--ink-subtle);
     font-size: 0.875rem;
 }
 
-/* Thin flat scrollbars */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -434,15 +529,9 @@ input[type="checkbox"]:focus-visible {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #3a4a68;
+    background: var(--line-strong);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #4f6390;
-}
-
-/* Ensure buttons have proper disabled states */
-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.4;
+    background: var(--ink-subtle);
 }

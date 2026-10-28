@@ -587,7 +587,9 @@ class Whisper:
         segments, info = self.model.transcribe(
                 audio,
                 language = self.language,
-                vad_filter = False,
+                # Drop non-speech before decoding. Without it Whisper turns
+                # room noise (breaths, clicks, fans) into "you" or "Thank you."
+                vad_filter = True,
                 without_timestamps = False,
                 initial_prompt=prompt,
                 condition_on_previous_text=True,
